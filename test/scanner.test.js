@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
-const { detectProjects, directoryBreakdown } = require('../server');
+const { createReclaimEvent, detectProjects, directoryBreakdown } = require('../server');
 
 async function fixture() {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'project-index-'));
@@ -44,4 +44,12 @@ test('measures the complete folder and separates reclaimable data', async (t) =>
     sizes.totalSizeBytes,
     sizes.sourceSizeBytes + sizes.dependencySizeBytes + sizes.generatedSizeBytes + sizes.cacheSizeBytes + sizes.vcsSizeBytes
   );
+});
+
+test('records reclaimed space without double-counting nested projects', () => {
+  const previous = { path: '/projects/app', name: 'app', status: 'present', totalSizeBytes: 20_000 };
+  const event = createReclaimEvent(previous, { ...previous, totalSizeBytes: 10_000, contained: false }, '2026-09-11T00:00:00.000Z', 'event-1');
+  assert.equal(event.bytes, 10_000);
+  assert.equal(event.reason, 'size-reduced');
+  assert.equal(createReclaimEvent(previous, { ...previous, totalSizeBytes: 10_000, contained: true }, '2026-09-11T00:00:00.000Z', 'event-2'), null);
 });

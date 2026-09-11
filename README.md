@@ -1,6 +1,12 @@
+Note: tested on Mac OS only
+
 # Local Project Index
 
-A small, dependency-free local dashboard that finds development projects, records their sizes, and remembers whether each project is still present between scans.
+A small, dependency-free local dashboard that finds development projects and repos, records their sizes, and remembers whether each project is still present between scans.
+
+# WHY??
+Because memory is expensive these days, and trust me you'll find a ton of sloped node_modules in worktrees that you never touched, and projects you don't know they still exist.
+
 
 ## Run it
 
@@ -21,6 +27,8 @@ The default **code** view shows top-level development projects. Dedicated filter
 You can search, sort, select visible results, copy one or many paths, and bulk-ignore entries. Ignored paths remain ignored after future scans and can be restored from the **ignored** filter.
 
 **Disk** is the allocated size of the complete project folder, matching operating-system disk usage and including `node_modules`, virtual environments, build output, caches, and Git metadata. **Cleanup** is the portion occupied by dependencies, generated output, and caches. Hover over a cleanup value to see its breakdown. Cleanup is an estimate of reproducible data; review it before deleting anything.
+
+Every scan also compares top-level projects with the previous scan. Size reductions and removed project folders are recorded as reclaim events in the local inventory, giving the dashboard a cumulative **reclaimed over time** total, a **this scan** value, and a recent history. Nested projects are excluded from this calculation so their space is not counted twice through their parent.
 
 ## Configuration
 

@@ -76,7 +76,7 @@ async function readStore() {
     return JSON.parse(await fs.readFile(STORE_PATH, 'utf8'));
   } catch (error) {
     if (error.code !== 'ENOENT') console.error('Could not read store:', error.message);
-    return { version: 3, scanRoot: os.homedir(), lastScanAt: null, projects: [] };
+    return { version: 4, scanRoot: os.homedir(), lastScanAt: null, reclaimedTotalBytes: 0, lastScanReclaimedBytes: 0, reclaimHistory: [], projects: [] };
   }
 }
 
@@ -136,7 +136,10 @@ async function refreshPresence(store) {
     !project.path.split(path.sep).some((part) => DISCOVERY_SKIP_DIRS.has(part))
   );
   const paths = new Set(store.projects.map((project) => project.path));
-  store.version = 3;
+  store.version = 4;
+  store.reclaimedTotalBytes = store.reclaimedTotalBytes || 0;
+  store.lastScanReclaimedBytes = store.lastScanReclaimedBytes || 0;
+  store.reclaimHistory = store.reclaimHistory || [];
   store.projects = await Promise.all(store.projects.map(async (project) => {
     const present = await pathExists(project.path);
     const markers = project.markers || [];
@@ -245,6 +248,23 @@ async function directoryBreakdown(root) {
   return { ...sizes, reclaimableSizeBytes: sizes.dependencySizeBytes + sizes.generatedSizeBytes + sizes.cacheSizeBytes };
 }
 
+function createReclaimEvent(previous, current, now, id) {
+  const beforeBytes = previous?.totalSizeBytes ?? previous?.sizeBytes;
+  const afterBytes = current.totalSizeBytes ?? current.sizeBytes ?? 0;
+  const bytes = beforeBytes == null ? 0 : beforeBytes - afterBytes;
+  if (previous?.status !== 'present' || current.contained || bytes < 4096) return null;
+  return {
+    id,
+    at: now,
+    projectPath: current.path,
+    projectName: current.name,
+    bytes,
+    reason: afterBytes === 0 ? 'project-removed' : 'size-reduced',
+    beforeBytes,
+    afterBytes
+  };
+}
+
 async function scan(scanRoot) {
   const root = path.resolve(scanRoot || os.homedir());
   const stats = await fs.stat(root);
@@ -283,25 +303,46 @@ async function scan(scanRoot) {
     };
   });
 
-  const retained = previous.projects
-    .filter((project) => !seen.has(project.path))
-    .filter((project) => !project.path.split(path.sep).some((part) => DISCOVERY_SKIP_DIRS.has(part)))
-    .map((project) => {
-      if (!isInside(project.path, root)) return project;
-      return {
-        ...project,
-        status: 'missing',
-        change: 'missing',
-        missingSince: project.missingSince || now
-      };
-    });
+  const reclaimEvents = [];
+  for (const project of currentProjects) {
+    const old = byPath.get(project.path);
+    const event = createReclaimEvent(old, project, now, `${Date.now()}-${reclaimEvents.length}`);
+    if (event) reclaimEvents.push(event);
+  }
+
+  const retained = [];
+  for (const project of previous.projects) {
+    if (seen.has(project.path) || project.path.split(path.sep).some((part) => DISCOVERY_SKIP_DIRS.has(part))) continue;
+    if (!isInside(project.path, root)) {
+      retained.push(project);
+      continue;
+    }
+    const present = await pathExists(project.path);
+    const status = present ? 'unrecognized' : 'missing';
+    const updated = {
+      ...project,
+      status,
+      change: status,
+      missingSince: present ? null : project.missingSince || now
+    };
+    retained.push(updated);
+    const event = !present
+      ? createReclaimEvent(project, { ...project, totalSizeBytes: 0 }, now, `${Date.now()}-${reclaimEvents.length}`)
+      : null;
+    if (event) reclaimEvents.push(event);
+  }
+
+  const lastScanReclaimedBytes = reclaimEvents.reduce((sum, event) => sum + event.bytes, 0);
 
   const store = {
-    version: 3,
+    version: 4,
     scanRoot: root,
     lastScanAt: now,
     scanDurationMs: Date.now() - startedAt,
     inspectedDirectories,
+    reclaimedTotalBytes: (previous.reclaimedTotalBytes || 0) + lastScanReclaimedBytes,
+    lastScanReclaimedBytes,
+    reclaimHistory: [...reclaimEvents.reverse(), ...(previous.reclaimHistory || [])].slice(0, 200),
     projects: [...currentProjects, ...retained].sort((a, b) => a.name.localeCompare(b.name))
   };
   await writeStore(store);
@@ -313,7 +354,7 @@ async function setIgnored(projectPaths, ignored) {
   const requested = new Set(Array.isArray(projectPaths) ? projectPaths : []);
   if (!requested.size) throw new Error('Select at least one project.');
   let updated = 0;
-  store.version = 3;
+  store.version = 4;
   store.projects = store.projects.map((project) => {
     if (!requested.has(project.path)) return project;
     updated += 1;
@@ -396,4 +437,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { classifyMarkers, detectProjects, directoryBreakdown };
+module.exports = { classifyMarkers, createReclaimEvent, detectProjects, directoryBreakdown };

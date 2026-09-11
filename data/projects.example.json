@@ -1,6 +1,9 @@
 {
-  "version": 3,
+  "version": 4,
   "scanRoot": "/Users/you",
   "lastScanAt": null,
+  "reclaimedTotalBytes": 0,
+  "lastScanReclaimedBytes": 0,
+  "reclaimHistory": [],
   "projects": []
 }

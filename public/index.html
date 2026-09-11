@@ -40,6 +40,25 @@
           </dl>
         </div>
 
+        <section class="reclaim-meter" aria-labelledby="reclaimed-title">
+          <div class="reclaim-value">
+            <span class="section-label">RECLAIMED OVER TIME</span>
+            <h3 id="reclaimed-title">0 B</h3>
+          </div>
+          <div class="reclaim-progress">
+            <div class="reclaim-copy">
+              <span id="reclaimed-scan">+0 B this scan</span>
+              <span id="reclaim-note">Cleanup a project, then scan again to measure it.</span>
+            </div>
+            <div class="reclaim-track" aria-hidden="true"><span id="reclaim-fill"></span></div>
+          </div>
+          <button id="history-toggle" class="history-toggle" type="button" aria-expanded="false" aria-controls="reclaim-history">history <span>↓</span></button>
+        </section>
+        <div id="reclaim-history" class="reclaim-history" hidden>
+          <div class="history-head"><span>recent reclaim events</span><span>space freed</span></div>
+          <div id="history-list"></div>
+        </div>
+
         <div class="controls">
           <label class="search-control">
             <span aria-hidden="true">⌕</span><span class="sr-only">Search projects</span>

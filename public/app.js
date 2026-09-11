@@ -3,7 +3,10 @@ const state = {
   filter: 'code',
   query: '',
   sort: 'name',
-  selected: new Set()
+  selected: new Set(),
+  reclaimedTotalBytes: 0,
+  lastScanReclaimedBytes: 0,
+  reclaimHistory: []
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -14,7 +17,9 @@ const elements = {
   bulkBar: $('#bulk-bar'), selectedCount: $('#selected-count'), toast: $('#toast'),
   visibleCount: $('#visible-count'), projectCount: $('#project-count'), presentCount: $('#present-count'),
   missingCount: $('#missing-count'), reclaimableSize: $('#reclaimable-size'), totalSize: $('#total-size'),
-  lastScan: $('#last-scan')
+  lastScan: $('#last-scan'), reclaimedTotal: $('#reclaimed-title'), reclaimedScan: $('#reclaimed-scan'),
+  reclaimNote: $('#reclaim-note'), reclaimFill: $('#reclaim-fill'), historyToggle: $('#history-toggle'),
+  reclaimHistory: $('#reclaim-history'), historyList: $('#history-list')
 };
 
 let toastTimer;
@@ -70,7 +75,45 @@ function projectState(project) {
   if (project.ignored) return 'ignored';
   if (project.status === 'missing') return 'missing';
   if (['new', 'grew', 'shrunk'].includes(project.change)) return project.change;
+  if (project.status === 'unrecognized') return 'unrecognized';
   return 'present';
+}
+
+function renderReclaim(potentialBytes) {
+  const reclaimed = state.reclaimedTotalBytes;
+  const eventCount = state.reclaimHistory.length;
+  const denominator = reclaimed + potentialBytes;
+  const progress = denominator ? Math.min(100, (reclaimed / denominator) * 100) : 0;
+  elements.reclaimedTotal.textContent = formatBytes(reclaimed);
+  elements.reclaimedScan.textContent = `+${formatBytes(state.lastScanReclaimedBytes)} this scan`;
+  elements.reclaimFill.style.width = `${progress}%`;
+  elements.reclaimNote.textContent = eventCount
+    ? `${eventCount} reclaim event${eventCount === 1 ? '' : 's'} recorded locally`
+    : 'Cleanup a project, then scan again to measure it.';
+
+  elements.historyList.replaceChildren();
+  if (!eventCount) {
+    const empty = document.createElement('p');
+    empty.className = 'history-empty';
+    empty.textContent = 'No reclaimed space recorded yet. The current scan is your baseline.';
+    elements.historyList.append(empty);
+    return;
+  }
+  state.reclaimHistory.slice(0, 8).forEach((event) => {
+    const row = document.createElement('div');
+    row.className = 'history-row';
+    const project = document.createElement('div');
+    project.className = 'history-project';
+    project.textContent = event.projectName;
+    const reason = document.createElement('small');
+    reason.textContent = `${event.reason === 'project-removed' ? 'folder removed' : 'size reduced'} · ${relativeTime(event.at)}`;
+    project.append(reason);
+    const amount = document.createElement('span');
+    amount.className = 'history-amount';
+    amount.textContent = `+${formatBytes(event.bytes)}`;
+    row.append(project, amount);
+    elements.historyList.append(row);
+  });
 }
 
 function render() {
@@ -83,8 +126,10 @@ function render() {
   elements.presentCount.textContent = present.length;
   elements.missingCount.textContent = active.filter((project) => project.status === 'missing').length;
   const topLevel = present.filter((project) => !project.contained);
+  const potentialBytes = topLevel.reduce((sum, project) => sum + (project.reclaimableSizeBytes || 0), 0);
   elements.totalSize.textContent = formatBytes(topLevel.reduce((sum, project) => sum + (project.totalSizeBytes ?? project.sizeBytes ?? 0), 0));
-  elements.reclaimableSize.textContent = formatBytes(topLevel.reduce((sum, project) => sum + (project.reclaimableSizeBytes || 0), 0));
+  elements.reclaimableSize.textContent = formatBytes(potentialBytes);
+  renderReclaim(potentialBytes);
   elements.list.replaceChildren();
   elements.empty.hidden = visible.length > 0;
 
@@ -140,6 +185,9 @@ function toggleSelection(projectPath, selected) {
 
 function applyStore(store) {
   state.projects = store.projects || [];
+  state.reclaimedTotalBytes = store.reclaimedTotalBytes || 0;
+  state.lastScanReclaimedBytes = store.lastScanReclaimedBytes || 0;
+  state.reclaimHistory = store.reclaimHistory || [];
   for (const selected of state.selected) {
     if (!state.projects.some((project) => project.path === selected)) state.selected.delete(selected);
   }
@@ -193,7 +241,7 @@ async function runScan(event) {
     state.selected.clear();
     applyStore(store);
     elements.scanStatus.textContent = `${store.projects.filter((project) => project.status === 'present').length} found`;
-    notify('index updated');
+    notify(store.lastScanReclaimedBytes ? `${formatBytes(store.lastScanReclaimedBytes)} reclaimed` : 'index updated');
   } catch (error) {
     elements.scanStatus.textContent = 'scan failed';
     elements.scanStatus.classList.add('error');
@@ -255,6 +303,11 @@ $('#copy-selected').addEventListener('click', () => {
 $('#ignore-selected').addEventListener('click', () => setIgnored(true));
 $('#unignore-selected').addEventListener('click', () => setIgnored(false));
 $('#clear-selection').addEventListener('click', () => { state.selected.clear(); render(); });
+elements.historyToggle.addEventListener('click', () => {
+  const expanded = elements.historyToggle.getAttribute('aria-expanded') === 'true';
+  elements.historyToggle.setAttribute('aria-expanded', String(!expanded));
+  elements.reclaimHistory.hidden = expanded;
+});
 
 document.addEventListener('keydown', (event) => {
   if (event.key === '/' && !['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
