@@ -76,9 +76,10 @@
           </div>
           <label class="sort-control"><span>sort</span>
             <select id="project-sort">
-              <option value="name">name</option><option value="size-desc">size ↓</option>
-              <option value="size-asc">size ↑</option><option value="cleanup">rebuildable</option><option value="recent">last seen</option>
-              <option value="type">type</option>
+              <option value="name">name ↑</option><option value="name-desc">name ↓</option><option value="size-desc">size ↓</option>
+              <option value="size-asc">size ↑</option><option value="cleanup">rebuildable ↓</option><option value="cleanup-asc">rebuildable ↑</option>
+              <option value="recent">last seen</option><option value="type">type ↑</option><option value="type-desc">type ↓</option>
+              <option value="state">disk change ↑</option><option value="state-desc">disk change ↓</option>
             </select>
           </label>
         </div>
@@ -93,9 +94,11 @@
 
         <div class="list-header">
           <label><input id="select-all" type="checkbox" aria-label="Select all visible projects" /><span></span></label>
-          <span>project</span><span>type</span><span>disk</span>
-          <span class="column-help" tabindex="0" data-tooltip="Dependencies, build output, and caches that tools can recreate. Source files and Git history are excluded." aria-label="Rebuildable: dependencies, build output, and caches that tools can recreate. Source files and Git history are excluded.">rebuildable <b aria-hidden="true">?</b></span>
-          <span class="column-help" tabindex="0" data-tooltip="How the project's total disk use changed since the previous scan. The scanner only measures changes; it does not delete files." aria-label="Disk change: how total disk use changed since the previous scan. The scanner only measures changes; it does not delete files.">disk change <b aria-hidden="true">?</b></span><span></span>
+          <span class="sortable-column" role="columnheader" data-sort-key="name"><button type="button">project <i aria-hidden="true"></i></button></span>
+          <span class="sortable-column" role="columnheader" data-sort-key="type"><button type="button">type <i aria-hidden="true"></i></button></span>
+          <span class="sortable-column" role="columnheader" data-sort-key="size"><button type="button">disk <i aria-hidden="true"></i></button></span>
+          <span class="sortable-column column-help" role="columnheader" data-sort-key="cleanup" data-tooltip="Dependencies, build output, and caches that tools can recreate. Source files and Git history are excluded."><button type="button">rebuildable <i aria-hidden="true"></i></button><b tabindex="0" aria-label="Rebuildable: dependencies, build output, and caches that tools can recreate. Source files and Git history are excluded.">?</b></span>
+          <span class="sortable-column column-help" role="columnheader" data-sort-key="state" data-tooltip="How the project's total disk use changed since the previous scan. The scanner only measures changes; it does not delete files."><button type="button">disk change <i aria-hidden="true"></i></button><b tabindex="0" aria-label="Disk change: how total disk use changed since the previous scan. The scanner only measures changes; it does not delete files.">?</b></span><span></span>
         </div>
         <div id="project-list" class="project-list"></div>
         <div id="empty-state" class="empty-state" hidden><span>∅</span><p>No matching projects.</p></div>

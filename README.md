@@ -1,12 +1,12 @@
-Note: tested on Mac OS only
+> **Note:** Currently tested on macOS only.
 
 # Local Project Index
 
 A small, dependency-free local dashboard that finds development projects and repos, records their sizes, and remembers whether each project is still present between scans.
 
-# WHY??
-Because memory is expensive these days, and trust me you'll find a ton of sloped node_modules in worktrees that you never touched, and projects you don't know they still exist.
+## Why?
 
+Storage is expensive these days—and, trust me, you'll find a ton of bloated `node_modules` folders in worktrees you never touched, plus projects you forgot still existed.
 
 ## Run it
 

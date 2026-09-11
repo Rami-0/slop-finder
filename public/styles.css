@@ -156,7 +156,13 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 1px s
 .list-header, .project-row { display: grid; grid-template-columns: 30px minmax(240px, 1fr) 92px 86px 112px 104px 60px; gap: 14px; align-items: center; }
 .list-header { height: 37px; border-bottom: 1px solid var(--line); color: var(--faint); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
 .list-header > span:nth-last-child(-n+5) { text-align: right; }
-.column-help { position: relative; cursor: help; white-space: nowrap; }
+.sortable-column { min-width: 0; }
+.sortable-column button { width: 100%; padding: 9px 0; border: 0; background: transparent; color: inherit; font: inherit; letter-spacing: inherit; text-align: inherit; text-transform: inherit; white-space: nowrap; }
+.sortable-column button:hover, .sortable-column[aria-sort]:not([aria-sort="none"]) button { color: var(--accent); }
+.sortable-column button i { display: inline-block; width: 9px; color: var(--faint); font-style: normal; letter-spacing: 0; }
+.sortable-column[aria-sort]:not([aria-sort="none"]) button i { color: var(--accent); }
+.column-help { position: relative; display: flex; align-items: center; justify-content: end; white-space: nowrap; }
+.column-help button { width: auto; }
 .column-help b { display: inline-grid; width: 13px; height: 13px; margin-left: 3px; place-items: center; border: 1px solid #465057; border-radius: 50%; color: var(--muted); font-size: 8px; line-height: 1; }
 
 .project-row { min-height: 66px; border-bottom: 1px solid var(--line-soft); transition: background .12s ease; animation: reveal .22s ease both; }
@@ -205,8 +211,8 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 1px s
   pointer-events: none;
   transition: opacity .12s ease, transform .12s ease;
 }
-.column-help:hover::after, .column-help:focus-visible::after, .cleanup:hover::after, .cleanup:focus-visible::after { opacity: 1; transform: translateY(0); }
-.column-help:focus-visible, .cleanup:focus-visible { outline: 1px solid var(--warn); outline-offset: 3px; }
+.column-help:has(> b:hover)::after, .column-help:has(> b:focus-visible)::after, .cleanup:hover::after, .cleanup:focus-visible::after { opacity: 1; transform: translateY(0); }
+.column-help b:focus-visible, .cleanup:focus-visible { outline: 1px solid var(--warn); outline-offset: 3px; }
 .state { display: flex; align-items: center; justify-content: end; gap: 7px; }
 .state i { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
 .is-missing .state i { background: var(--danger); }

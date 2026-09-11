@@ -62,9 +62,39 @@ function sortProjects(projects) {
   if (state.sort === 'size-desc') return sorted.sort((a, b) => total(b) - total(a) || text(a, b, 'name'));
   if (state.sort === 'size-asc') return sorted.sort((a, b) => total(a) - total(b) || text(a, b, 'name'));
   if (state.sort === 'cleanup') return sorted.sort((a, b) => (b.reclaimableSizeBytes || 0) - (a.reclaimableSizeBytes || 0) || text(a, b, 'name'));
+  if (state.sort === 'cleanup-asc') return sorted.sort((a, b) => (a.reclaimableSizeBytes || 0) - (b.reclaimableSizeBytes || 0) || text(a, b, 'name'));
   if (state.sort === 'recent') return sorted.sort((a, b) => new Date(b.lastSeen || 0) - new Date(a.lastSeen || 0));
   if (state.sort === 'type') return sorted.sort((a, b) => text(a, b, 'kind') || text(a, b, 'name'));
+  if (state.sort === 'type-desc') return sorted.sort((a, b) => text(b, a, 'kind') || text(a, b, 'name'));
+  if (state.sort === 'state') return sorted.sort((a, b) => projectState(a).localeCompare(projectState(b)) || text(a, b, 'name'));
+  if (state.sort === 'state-desc') return sorted.sort((a, b) => projectState(b).localeCompare(projectState(a)) || text(a, b, 'name'));
+  if (state.sort === 'name-desc') return sorted.sort((a, b) => text(b, a, 'name'));
   return sorted.sort((a, b) => text(a, b, 'name'));
+}
+
+const headerSorts = {
+  name: { values: ['name', 'name-desc'], directions: ['ascending', 'descending'] },
+  type: { values: ['type', 'type-desc'], directions: ['ascending', 'descending'] },
+  size: { values: ['size-desc', 'size-asc'], directions: ['descending', 'ascending'] },
+  cleanup: { values: ['cleanup', 'cleanup-asc'], directions: ['descending', 'ascending'] },
+  state: { values: ['state', 'state-desc'], directions: ['ascending', 'descending'] }
+};
+
+function updateSortUI() {
+  document.querySelectorAll('.sortable-column').forEach((column) => {
+    const { values, directions } = headerSorts[column.dataset.sortKey];
+    const activeIndex = values.indexOf(state.sort);
+    const direction = activeIndex === -1 ? 'none' : directions[activeIndex];
+    column.setAttribute('aria-sort', direction);
+    column.querySelector('i').textContent = direction === 'ascending' ? '↑' : direction === 'descending' ? '↓' : '↕';
+  });
+  if ([...elements.sort.options].some((option) => option.value === state.sort)) elements.sort.value = state.sort;
+}
+
+function sortByHeader(key) {
+  const [first, second] = headerSorts[key].values;
+  state.sort = state.sort === first ? second : first;
+  render();
 }
 
 function visibleProjects() {
@@ -134,6 +164,7 @@ function render() {
   renderReclaim(potentialBytes);
   elements.list.replaceChildren();
   elements.empty.hidden = visible.length > 0;
+  updateSortUI();
 
   visible.forEach((project, index) => {
     const row = elements.template.content.firstElementChild.cloneNode(true);
@@ -283,6 +314,9 @@ async function setIgnored(ignored) {
 elements.form.addEventListener('submit', runScan);
 elements.search.addEventListener('input', (event) => { state.query = event.target.value.trim().toLowerCase(); render(); });
 elements.sort.addEventListener('change', (event) => { state.sort = event.target.value; render(); });
+document.querySelectorAll('.sortable-column button').forEach((button) => {
+  button.addEventListener('click', () => sortByHeader(button.parentElement.dataset.sortKey));
+});
 elements.selectAll.addEventListener('change', () => {
   for (const project of visibleProjects()) {
     if (elements.selectAll.checked) state.selected.add(project.path);
