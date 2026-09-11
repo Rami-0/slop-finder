@@ -74,9 +74,11 @@ function visibleProjects() {
 function projectState(project) {
   if (project.ignored) return 'ignored';
   if (project.status === 'missing') return 'missing';
-  if (['new', 'grew', 'shrunk'].includes(project.change)) return project.change;
+  if (project.change === 'new') return 'new';
+  if (project.change === 'grew') return 'larger';
+  if (project.change === 'shrunk') return 'smaller';
   if (project.status === 'unrecognized') return 'unrecognized';
-  return 'present';
+  return 'no change';
 }
 
 function renderReclaim(potentialBytes) {
@@ -89,7 +91,7 @@ function renderReclaim(potentialBytes) {
   elements.reclaimFill.style.width = `${progress}%`;
   elements.reclaimNote.textContent = eventCount
     ? `${eventCount} reclaim event${eventCount === 1 ? '' : 's'} recorded locally`
-    : 'Cleanup a project, then scan again to measure it.';
+    : 'Remove rebuildable files outside this app, then scan again to measure the space freed.';
 
   elements.historyList.replaceChildren();
   if (!eventCount) {
@@ -152,7 +154,9 @@ function render() {
     row.querySelector('.size').textContent = formatBytes(project.totalSizeBytes ?? project.sizeBytes);
     const cleanup = row.querySelector('.cleanup');
     cleanup.textContent = formatBytes(project.reclaimableSizeBytes || 0);
-    cleanup.title = `Dependencies ${formatBytes(project.dependencySizeBytes)} · builds ${formatBytes(project.generatedSizeBytes)} · caches ${formatBytes(project.cacheSizeBytes)} · git ${formatBytes(project.vcsSizeBytes)}`;
+    cleanup.tabIndex = 0;
+    cleanup.dataset.tooltip = `Dependencies ${formatBytes(project.dependencySizeBytes)} · builds ${formatBytes(project.generatedSizeBytes)} · caches ${formatBytes(project.cacheSizeBytes)}. Source and Git are excluded.`;
+    cleanup.setAttribute('aria-label', `${formatBytes(project.reclaimableSizeBytes || 0)} rebuildable: ${cleanup.dataset.tooltip}`);
     row.querySelector('.state span').textContent = projectState(project);
 
     const pathButton = row.querySelector('.copy-path');

@@ -153,9 +153,11 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 1px s
 .bulk-bar button { padding: 7px 10px; border: 1px solid #365746; background: transparent; color: #b7c9c0; font-size: 9px; text-transform: uppercase; }
 .bulk-bar button:hover { border-color: var(--accent); color: var(--accent); }
 
-.list-header, .project-row { display: grid; grid-template-columns: 30px minmax(240px, 1fr) 92px 86px 86px 94px 60px; gap: 14px; align-items: center; }
+.list-header, .project-row { display: grid; grid-template-columns: 30px minmax(240px, 1fr) 92px 86px 112px 104px 60px; gap: 14px; align-items: center; }
 .list-header { height: 37px; border-bottom: 1px solid var(--line); color: var(--faint); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
 .list-header > span:nth-last-child(-n+5) { text-align: right; }
+.column-help { position: relative; cursor: help; white-space: nowrap; }
+.column-help b { display: inline-grid; width: 13px; height: 13px; margin-left: 3px; place-items: center; border: 1px solid #465057; border-radius: 50%; color: var(--muted); font-size: 8px; line-height: 1; }
 
 .project-row { min-height: 66px; border-bottom: 1px solid var(--line-soft); transition: background .12s ease; animation: reveal .22s ease both; }
 .project-row:hover { background: var(--surface); }
@@ -177,6 +179,34 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 1px s
 .copy-path:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 .kind, .project-row > .size, .cleanup, .state { color: var(--muted); font-size: 9px; text-align: right; text-transform: uppercase; }
 .cleanup { color: var(--warn); }
+.cleanup { position: relative; cursor: help; }
+.column-help::after, .cleanup::after {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 9px);
+  z-index: 6;
+  width: max-content;
+  max-width: 310px;
+  padding: 9px 11px;
+  border: 1px solid #4b4435;
+  background: #17140f;
+  color: #d9d2c5;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .38);
+  content: attr(data-tooltip);
+  font-size: 9px;
+  font-weight: 400;
+  line-height: 1.55;
+  letter-spacing: 0;
+  text-align: left;
+  text-transform: none;
+  white-space: normal;
+  opacity: 0;
+  transform: translateY(3px);
+  pointer-events: none;
+  transition: opacity .12s ease, transform .12s ease;
+}
+.column-help:hover::after, .column-help:focus-visible::after, .cleanup:hover::after, .cleanup:focus-visible::after { opacity: 1; transform: translateY(0); }
+.column-help:focus-visible, .cleanup:focus-visible { outline: 1px solid var(--warn); outline-offset: 3px; }
 .state { display: flex; align-items: center; justify-content: end; gap: 7px; }
 .state i { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
 .is-missing .state i { background: var(--danger); }

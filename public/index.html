@@ -35,7 +35,7 @@
           <dl class="stats">
             <div><dt>present</dt><dd id="present-count">0</dd></div>
             <div><dt>missing</dt><dd id="missing-count">0</dd></div>
-            <div><dt>reclaimable</dt><dd id="reclaimable-size">0 B</dd></div>
+            <div><dt>rebuildable files</dt><dd id="reclaimable-size">0 B</dd></div>
             <div><dt>disk used</dt><dd id="total-size">0 B</dd></div>
           </dl>
         </div>
@@ -48,7 +48,7 @@
           <div class="reclaim-progress">
             <div class="reclaim-copy">
               <span id="reclaimed-scan">+0 B this scan</span>
-              <span id="reclaim-note">Cleanup a project, then scan again to measure it.</span>
+              <span id="reclaim-note">Remove rebuildable files outside this app, then scan again to measure the space freed.</span>
             </div>
             <div class="reclaim-track" aria-hidden="true"><span id="reclaim-fill"></span></div>
           </div>
@@ -77,7 +77,7 @@
           <label class="sort-control"><span>sort</span>
             <select id="project-sort">
               <option value="name">name</option><option value="size-desc">size ↓</option>
-              <option value="size-asc">size ↑</option><option value="cleanup">cleanup</option><option value="recent">last seen</option>
+              <option value="size-asc">size ↑</option><option value="cleanup">rebuildable</option><option value="recent">last seen</option>
               <option value="type">type</option>
             </select>
           </label>
@@ -91,9 +91,11 @@
           <button id="clear-selection" type="button">clear</button>
         </div>
 
-        <div class="list-header" aria-hidden="true">
+        <div class="list-header">
           <label><input id="select-all" type="checkbox" aria-label="Select all visible projects" /><span></span></label>
-          <span>project</span><span>type</span><span>disk</span><span>cleanup</span><span>state</span><span></span>
+          <span>project</span><span>type</span><span>disk</span>
+          <span class="column-help" tabindex="0" data-tooltip="Dependencies, build output, and caches that tools can recreate. Source files and Git history are excluded." aria-label="Rebuildable: dependencies, build output, and caches that tools can recreate. Source files and Git history are excluded.">rebuildable <b aria-hidden="true">?</b></span>
+          <span class="column-help" tabindex="0" data-tooltip="How the project's total disk use changed since the previous scan. The scanner only measures changes; it does not delete files." aria-label="Disk change: how total disk use changed since the previous scan. The scanner only measures changes; it does not delete files.">disk change <b aria-hidden="true">?</b></span><span></span>
         </div>
         <div id="project-list" class="project-list"></div>
         <div id="empty-state" class="empty-state" hidden><span>∅</span><p>No matching projects.</p></div>
