@@ -1,0 +1,13 @@
+{
+  "name": "local-project-index",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A tiny, local-only dashboard for finding and tracking development projects.",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

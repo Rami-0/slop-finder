@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="A local index of development projects on this machine." />
+    <title>~/projects</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="app-header">
+        <div class="brand">
+          <span class="prompt" aria-hidden="true">›_</span>
+          <div><h1>~/projects</h1><p>local repository index</p></div>
+        </div>
+        <div class="connection"><span></span> localhost</div>
+      </header>
+
+      <section class="scan-strip" aria-label="Scan controls">
+        <form id="scan-form">
+          <label for="scan-root">root</label>
+          <input id="scan-root" name="root" type="text" autocomplete="off" spellcheck="false" />
+          <button id="scan-button" type="submit"><span class="scan-icon">↻</span> scan</button>
+        </form>
+        <p id="scan-status" role="status" aria-live="polite">ready</p>
+      </section>
+
+      <section class="workspace" aria-labelledby="inventory-title">
+        <div class="summary">
+          <div>
+            <span class="section-label">INDEX</span>
+            <h2 id="inventory-title"><span id="visible-count">0</span><small> / <span id="project-count">0</span> shown</small></h2>
+          </div>
+          <dl class="stats">
+            <div><dt>present</dt><dd id="present-count">0</dd></div>
+            <div><dt>missing</dt><dd id="missing-count">0</dd></div>
+            <div><dt>reclaimable</dt><dd id="reclaimable-size">0 B</dd></div>
+            <div><dt>disk used</dt><dd id="total-size">0 B</dd></div>
+          </dl>
+        </div>
+
+        <div class="controls">
+          <label class="search-control">
+            <span aria-hidden="true">⌕</span><span class="sr-only">Search projects</span>
+            <input id="project-search" type="search" placeholder="search name or path…" /><kbd>/</kbd>
+          </label>
+          <div class="filter-set" role="group" aria-label="Filter projects">
+            <button class="filter is-active" data-filter="code" type="button">code</button>
+            <button class="filter" data-filter="all" type="button">all</button>
+            <button class="filter" data-filter="repository" type="button">repo only</button>
+            <button class="filter" data-filter="infrastructure" type="button">infra</button>
+            <button class="filter" data-filter="content" type="button">data/docs</button>
+            <button class="filter" data-filter="nested" type="button">nested</button>
+            <button class="filter" data-filter="missing" type="button">missing</button>
+            <button class="filter" data-filter="ignored" type="button">ignored</button>
+          </div>
+          <label class="sort-control"><span>sort</span>
+            <select id="project-sort">
+              <option value="name">name</option><option value="size-desc">size ↓</option>
+              <option value="size-asc">size ↑</option><option value="cleanup">cleanup</option><option value="recent">last seen</option>
+              <option value="type">type</option>
+            </select>
+          </label>
+        </div>
+
+        <div id="bulk-bar" class="bulk-bar" hidden>
+          <strong><span id="selected-count">0</span> selected</strong>
+          <button id="copy-selected" type="button">copy paths</button>
+          <button id="ignore-selected" type="button">ignore</button>
+          <button id="unignore-selected" type="button">unignore</button>
+          <button id="clear-selection" type="button">clear</button>
+        </div>
+
+        <div class="list-header" aria-hidden="true">
+          <label><input id="select-all" type="checkbox" aria-label="Select all visible projects" /><span></span></label>
+          <span>project</span><span>type</span><span>disk</span><span>cleanup</span><span>state</span><span></span>
+        </div>
+        <div id="project-list" class="project-list"></div>
+        <div id="empty-state" class="empty-state" hidden><span>∅</span><p>No matching projects.</p></div>
+
+        <footer>
+          <p id="last-scan">never scanned</p>
+          <p>click path to copy · disk size includes dependencies, builds and git</p>
+          <p>data/projects.json</p>
+        </footer>
+      </section>
+    </main>
+
+    <template id="project-template">
+      <article class="project-row">
+        <label class="check-wrap"><input class="row-check" type="checkbox" /><span></span></label>
+        <div class="project-main">
+          <div class="title-line"><h3></h3><span class="scope"></span></div>
+          <button class="copy-path" type="button" title="Copy path"></button>
+        </div>
+        <span class="kind"></span><span class="size"></span><span class="cleanup"></span>
+        <span class="state"><i></i><span></span></span>
+        <button class="open-button" type="button" aria-label="Open project folder">open ↗</button>
+      </article>
+    </template>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="/app.js" defer></script>
+  </body>
+</html>
