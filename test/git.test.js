@@ -201,12 +201,40 @@ test('asks the remote itself what it has, counting every remote as a copy', asyn
   assert.equal(run(work, 'rev-parse', 'origin/main'), view.head, 'checking the remote wrote nothing locally');
 });
 
-test('keeps a remote check in the inventory only while HEAD stays put', () => {
+test('changes refsHash whenever a branch tip or remote-tracking ref moves, even with HEAD still', async (t) => {
+  const { work } = await clonedFixture(t);
+  const before = await git.overview(work);
+  assert.match(before.refsHash, /^[0-9a-f]{64}$/);
+  assert.equal((await git.overview(work)).refsHash, before.refsHash, 'stable while nothing moves');
+
+  run(work, 'checkout', '-q', '-b', 'feature');
+  await write(path.join(work, 'feature.js'));
+  run(work, 'add', '.');
+  run(work, 'commit', '-qm', 'feature work');
+  run(work, 'checkout', '-q', 'main');
+  const branched = await git.overview(work);
+  assert.equal(branched.head, before.head, 'HEAD is back where it was');
+  assert.notEqual(branched.refsHash, before.refsHash, 'the new branch tip counts');
+  // So a check made before the branch existed no longer vouches for the repository.
+  const checked = snapshot({ ...before, verified: { ok: true, localOnlyCommits: 0 } }, null);
+  assert.equal(snapshot(branched, checked).verified, null);
+
+  run(work, 'update-ref', 'refs/remotes/origin/main', run(work, 'rev-parse', 'feature'));
+  const fetched = await git.overview(work);
+  assert.equal(fetched.head, before.head);
+  assert.notEqual(fetched.refsHash, branched.refsHash, 'a remote-tracking ref moving counts too');
+});
+
+test('keeps a remote check in the inventory only while HEAD and every ref stay put', () => {
   const verified = { ok: true, inSync: true, checkedAt: 'then' };
-  const previous = { state: 'repository', head: 'a', verified };
-  assert.deepEqual(snapshot({ state: 'repository', head: 'a', files: [1], fingerprint: 'x' }, previous).verified, verified);
-  assert.equal(snapshot({ state: 'repository', head: 'b' }, previous).verified, null);
-  assert.ok(!('files' in snapshot({ state: 'repository', head: 'a', files: [1] }, previous)), 'file lists are not stored');
+  const previous = { state: 'repository', head: 'a', refsHash: 'r', verified };
+  const view = (changes = {}) => ({ state: 'repository', head: 'a', refsHash: 'r', ...changes });
+  assert.deepEqual(snapshot(view({ files: [1], fingerprint: 'x' }), previous).verified, verified);
+  assert.equal(snapshot(view({ head: 'b' }), previous).verified, null, 'HEAD moved: a detached checkout touches no ref');
+  assert.equal(snapshot(view({ refsHash: 's' }), previous).verified, null, 'a branch tip or remote-tracking ref moved');
+  assert.equal(snapshot(view({ refsHash: null }), { ...previous, refsHash: null }).verified, null, 'the refs could not be listed');
+  assert.equal(snapshot(view(), { state: 'repository', head: 'a', verified }).verified, null, 'a snapshot from before refsHash drops its check once');
+  assert.ok(!('files' in snapshot(view({ files: [1] }), previous)), 'file lists are not stored');
   assert.equal(snapshot({ state: 'missing' }, previous), previous, 'a vanished folder keeps its last known state');
 });
 
