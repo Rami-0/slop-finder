@@ -35,10 +35,10 @@ Slop Finder is a small, dependency-free local dashboard for exactly that. Nothin
 
 ```mermaid
 flowchart LR
-    scan["🔍 Scan<br/>find projects under a folder"] --> see["📊 See<br/>disk, rebuildable, activity, Git"]
-    see --> pick["🧹 Pick<br/>a project, a folder, or a selection"]
-    pick --> review["🛡️ Review<br/>size, contents, Git, risk"]
-    review --> reclaim["✅ Reclaim<br/>delete or Trash, tracked over time"]
+    scan["🔍 Scan<br/>a folder"] --> see["📊 See<br/>size · activity · Git"]
+    see --> pick["🧹 Pick<br/>what to clean"]
+    pick --> review["🛡️ Review<br/>every item"]
+    review --> reclaim["✅ Reclaim<br/>the space"]
 ```
 
 ## Quick start
@@ -163,20 +163,20 @@ The inventory updates immediately: containing projects shrink, projects inside a
 sequenceDiagram
     autonumber
     actor You
-    participant Page as Browser page
-    participant Server as server.js
-    participant Disk as Disk and Git
-    You->>Page: clean a project, a folder, or a selection
-    Page->>Server: POST /api/cleanup/preview with the paths
-    Server->>Disk: measure, sample contents, ask Git about each item
-    Server-->>Page: a plan id, plus size, risk, notes, and restore command per item
-    You->>Page: untick items, choose permanent or Trash, confirm
+    participant Page as page
+    participant Server as server
+    participant Disk as disk + Git
+    You->>Page: clean something
+    Page->>Server: preview these paths
+    Server->>Disk: measure, sample, ask Git
+    Server-->>Page: plan id, risk and restore per item
+    You->>Page: untick, pick mode, confirm
     loop one item at a time
-        Page->>Server: POST /api/cleanup/execute with plan id and path
-        Server->>Disk: re-check the location and inode, then delete
-        Server-->>Page: bytes freed and the updated inventory
+        Page->>Server: execute plan item
+        Server->>Disk: re-check path + inode, delete
+        Server-->>Page: bytes freed, new inventory
     end
-    Page-->>You: Freed 1.8 GB, added to reclaimed over time
+    Page-->>You: Freed 1.8 GB
 ```
 
 ## Git and GitHub
@@ -220,9 +220,9 @@ Slop Finder never reads or stores your token. Each network command gets `gh auth
 A deletion has to pass every one of these checks, on the server, right before it happens:
 
 ```mermaid
-flowchart LR
+flowchart TD
     req(["delete request"]) --> guard["from the local page<br/>127.0.0.1 · Host · Origin · custom header"]
-    guard --> plan["reviewed first<br/>a plan you opened · item in that plan · only once"]
+    guard --> plan["reviewed first<br/>a plan you opened · in that plan · only once"]
     plan --> where["an allowed place<br/>home · /tmp · $TMPDIR · your extra locations<br/>and nothing protected"]
     where --> same["the same file<br/>same inode as reviewed · not a mount point"]
     same --> go(["delete, or move to Trash"])
@@ -269,25 +269,13 @@ A plain `node:http` server and a page built from native ES modules. There is no 
 
 ```mermaid
 flowchart LR
-    subgraph page["Browser · public/"]
-        ui["tree and list views<br/>cleanup and Git dialogs<br/>folder browser"]
-    end
+    ui["browser page<br/>public/js"] -- "JSON over fetch" --> guard
     subgraph server["node server.js · 127.0.0.1"]
-        guard["request guard<br/>Host · Origin · x-slop-finder"]
-        scanner["scanner.js · rules.js<br/>discover and measure"]
-        cleanup["inspect.js · cleanup.js<br/>review plans, delete"]
-        safety["safety.js<br/>allowed and protected paths"]
-        repos["git.js · repos.js · github.js<br/>status, commit, push"]
-        store[("data/projects.json")]
+        guard["request guard<br/>Host · Origin · header"] --> core["scanner · rules · inspect<br/>cleanup · safety<br/>git · repos · github"]
+        core --> store[("data/projects.json")]
     end
-    disk[("your disk")]
-    tools["git · gh"]
-    ui -- "JSON over fetch" --> guard
-    guard --> scanner & cleanup & repos
-    cleanup --> safety
-    scanner & cleanup --> disk
-    scanner & cleanup & repos --> store
-    repos --> tools
+    core --> disk[("your disk")]
+    core --> tools["git · gh"]
 ```
 
 A few choices that keep it simple and safe:
