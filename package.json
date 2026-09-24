@@ -2,7 +2,7 @@
   "name": "local-project-index",
   "version": "1.0.0",
   "private": true,
-  "description": "A tiny, local-only dashboard for finding and tracking development projects.",
+  "description": "A tiny, local-only dashboard for finding development projects and cleaning their rebuildable files.",
   "scripts": {
     "start": "node server.js",
     "test": "node --test"

@@ -3,128 +3,340 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="A local index of development projects on this machine." />
+    <meta name="description" content="A local index of development projects, their rebuildable files, and a manual cleanup tool." />
     <title>~/projects</title>
     <link rel="stylesheet" href="/styles.css" />
+    <script type="module" src="/js/main.js"></script>
   </head>
   <body>
+    <svg class="icon-sprite" aria-hidden="true" focusable="false">
+      <symbol id="i-chevron" viewBox="0 0 16 16"><path d="M6 3.5 10.5 8 6 12.5" /></symbol>
+      <symbol id="i-folder" viewBox="0 0 16 16"><path d="M2 4.25c0-.55.45-1 1-1h3.1l1.6 1.6H13c.55 0 1 .45 1 1v6.9c0 .55-.45 1-1 1H3c-.55 0-1-.45-1-1z" /></symbol>
+      <symbol id="i-project" viewBox="0 0 16 16"><path d="M8 1.75 13.5 4.8v6.4L8 14.25 2.5 11.2V4.8z" /><path d="M2.5 4.8 8 7.85l5.5-3.05M8 7.85v6.4" /></symbol>
+      <symbol id="i-artifact" viewBox="0 0 16 16"><path d="M8 2 14 5.2 8 8.4 2 5.2z" /><path d="m2 8 6 3.2L14 8" /><path d="m2 10.8 6 3.2 6-3.2" /></symbol>
+      <symbol id="i-file" viewBox="0 0 16 16"><path d="M3.75 1.75h5.5l3 3v9.5h-8.5z" /><path d="M9.25 1.75v3h3" /></symbol>
+      <symbol id="i-link" viewBox="0 0 16 16"><path d="m6.25 9.75 3.5-3.5" /><path d="m7.1 4.4 1.3-1.3a2.75 2.75 0 0 1 3.9 3.9l-1.3 1.3" /><path d="m8.9 11.6-1.3 1.3a2.75 2.75 0 0 1-3.9-3.9L5 7.7" /></symbol>
+      <symbol id="i-lock" viewBox="0 0 16 16"><rect x="3.25" y="7" width="9.5" height="6.75" rx="1.25" /><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" /></symbol>
+      <symbol id="i-trash" viewBox="0 0 16 16"><path d="M2.75 4.25h10.5M6.25 4.25V2.5h3.5v1.75" /><path d="m4.25 4.25.65 9.5h6.2l.65-9.5" /><path d="M6.75 7v4.25M9.25 7v4.25" /></symbol>
+      <symbol id="i-reveal" viewBox="0 0 16 16"><path d="M9.25 2.25h4.5v4.5M13.75 2.25 7.5 8.5" /><path d="M11.75 9.5v3.25c0 .55-.45 1-1 1h-7.5c-.55 0-1-.45-1-1v-7.5c0-.55.45-1 1-1H6.5" /></symbol>
+      <symbol id="i-refresh" viewBox="0 0 16 16"><path d="M13.25 8.5a5.25 5.25 0 1 1-1.6-4.3" /><path d="M13.25 2.5v3.25H10" /></symbol>
+      <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5" /><path d="m10.4 10.4 3.35 3.35" /></symbol>
+      <symbol id="i-close" viewBox="0 0 16 16"><path d="m4 4 8 8M12 4l-8 8" /></symbol>
+      <symbol id="i-up" viewBox="0 0 16 16"><path d="M8 13.25V2.75M3.75 7 8 2.75 12.25 7" /></symbol>
+      <symbol id="i-shield" viewBox="0 0 16 16"><path d="M8 1.75 13.25 3.8v4.1c0 3-2.2 5.2-5.25 6.35C4.95 13.1 2.75 10.9 2.75 7.9V3.8z" /><path d="m5.75 8 1.6 1.6 3-3.2" /></symbol>
+      <symbol id="i-check" viewBox="0 0 16 16"><path d="m3.25 8.5 3 3 6.5-7" /></symbol>
+      <symbol id="i-alert" viewBox="0 0 16 16"><path d="M7.13 2.6a1 1 0 0 1 1.74 0l5.3 9.4a1 1 0 0 1-.87 1.5H2.7a1 1 0 0 1-.87-1.5z" /><path d="M8 6.25v3M8 11.4v.1" /></symbol>
+      <symbol id="i-info" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.25" /><path d="M8 7.25v4M8 4.9v.1" /></symbol>
+      <symbol id="i-branch" viewBox="0 0 16 16"><circle cx="4.75" cy="3.5" r="1.5" /><circle cx="4.75" cy="12.5" r="1.5" /><circle cx="11.25" cy="5.25" r="1.5" /><path d="M4.75 5v6M11.25 6.75c0 2.4-2.6 2.9-6.5 4" /></symbol>
+      <symbol id="i-tree" viewBox="0 0 16 16"><path d="M2.5 3h5M4.25 3v9.75h4M4.25 7.75h4" /><path d="M10.5 7.75h3M10.5 12.75h3M9.5 3h4" /></symbol>
+      <symbol id="i-list" viewBox="0 0 16 16"><path d="M5.5 4h8.25M5.5 8h8.25M5.5 12h8.25" /><path d="M2.25 4h.5M2.25 8h.5M2.25 12h.5" /></symbol>
+      <symbol id="i-expand" viewBox="0 0 16 16"><path d="M4.5 6 8 2.5 11.5 6M4.5 10 8 13.5l3.5-3.5" /></symbol>
+      <symbol id="i-collapse" viewBox="0 0 16 16"><path d="M4.5 2.5 8 6l3.5-3.5M4.5 13.5 8 10l3.5 3.5" /></symbol>
+      <symbol id="i-panel" viewBox="0 0 16 16"><rect x="2" y="2.75" width="12" height="10.5" rx="1.25" /><path d="M9.5 2.75v10.5" /></symbol>
+      <symbol id="i-scan" viewBox="0 0 16 16"><path d="M13 8a5 5 0 1 1-1.46-3.54" /><path d="M13 2.75V5.5h-2.75" /></symbol>
+    </svg>
+
     <main class="app-shell">
       <header class="app-header">
         <div class="brand">
           <span class="prompt" aria-hidden="true">›_</span>
-          <div><h1>~/projects</h1><p>local repository index</p></div>
+          <div><h1>~/projects</h1><p>local project index &amp; cleanup</p></div>
         </div>
-        <div class="connection"><span></span> localhost</div>
+        <div class="header-actions">
+          <button id="gh-chip" class="status-chip" type="button" title="Checking the GitHub CLI session…">gh …</button>
+          <button id="locations-button" class="ghost-button" type="button" popovertarget="locations-popover">
+            <svg class="icon"><use href="#i-shield" /></svg><span>Delete locations</span>
+          </button>
+          <div class="connection"><span class="live-dot"></span> <b id="system-label">localhost</b></div>
+        </div>
       </header>
 
       <section class="scan-strip" aria-label="Scan controls">
         <form id="scan-form">
           <label for="scan-root">root</label>
           <input id="scan-root" name="root" type="text" autocomplete="off" spellcheck="false" />
-          <button id="scan-button" type="submit"><span class="scan-icon">↻</span> scan</button>
+          <button id="scan-button" type="submit"><svg class="icon scan-icon"><use href="#i-scan" /></svg> scan</button>
         </form>
         <p id="scan-status" role="status" aria-live="polite">ready</p>
       </section>
 
-      <section class="workspace" aria-labelledby="inventory-title">
-        <div class="summary">
-          <div>
-            <span class="section-label">INDEX</span>
-            <h2 id="inventory-title"><span id="visible-count">0</span><small> / <span id="project-count">0</span> shown</small></h2>
+      <section class="overview" aria-label="Overview">
+        <dl class="overview-stats">
+          <div class="stat">
+            <dt>projects shown</dt>
+            <dd><span id="visible-count">0</span><small> of <span id="project-count">0</span> indexed · <span id="missing-count">0</span> missing</small></dd>
           </div>
-          <dl class="stats">
-            <div><dt>present</dt><dd id="present-count">0</dd></div>
-            <div><dt>missing</dt><dd id="missing-count">0</dd></div>
-            <div><dt>rebuildable files</dt><dd id="reclaimable-size">0 B</dd></div>
-            <div><dt>disk used</dt><dd id="total-size">0 B</dd></div>
-          </dl>
-        </div>
-
-        <section class="reclaim-meter" aria-labelledby="reclaimed-title">
-          <div class="reclaim-value">
-            <span class="section-label">RECLAIMED OVER TIME</span>
-            <h3 id="reclaimed-title">0 B</h3>
+          <div class="stat">
+            <dt>disk used</dt>
+            <dd id="total-size">0 B</dd>
           </div>
-          <div class="reclaim-progress">
-            <div class="reclaim-copy">
-              <span id="reclaimed-scan">+0 B this scan</span>
-              <span id="reclaim-note">Remove rebuildable files outside this app, then scan again to measure the space freed.</span>
-            </div>
+          <div class="stat stat-warn">
+            <dt>rebuildable</dt>
+            <dd id="reclaimable-size">0 B</dd>
+          </div>
+          <div class="stat stat-accent stat-reclaim">
+            <dt>reclaimed over time</dt>
+            <dd><span id="reclaimed-total">0 B</span><small id="reclaimed-scan">+0 B this scan</small></dd>
             <div class="reclaim-track" aria-hidden="true"><span id="reclaim-fill"></span></div>
           </div>
-          <button id="history-toggle" class="history-toggle" type="button" aria-expanded="false" aria-controls="reclaim-history">history <span>↓</span></button>
-        </section>
+          <button id="history-toggle" class="history-toggle" type="button" aria-expanded="false" aria-controls="reclaim-history">
+            history <svg class="icon"><use href="#i-chevron" /></svg>
+          </button>
+        </dl>
         <div id="reclaim-history" class="reclaim-history" hidden>
-          <div class="history-head"><span>recent reclaim events</span><span>space freed</span></div>
+          <div class="history-head"><span id="reclaim-note">recent reclaim events</span><span>space freed</span></div>
           <div id="history-list"></div>
         </div>
+      </section>
 
-        <div class="controls">
+      <div id="sticky-top" class="sticky-top">
+      <section class="toolbar" aria-label="Find projects">
+        <div class="toolbar-row">
           <label class="search-control">
-            <span aria-hidden="true">⌕</span><span class="sr-only">Search projects</span>
-            <input id="project-search" type="search" placeholder="search name or path…" /><kbd>/</kbd>
+            <svg class="icon" aria-hidden="true"><use href="#i-search" /></svg><span class="sr-only">Search projects</span>
+            <input id="project-search" type="search" placeholder="search name, path, or type…" /><kbd>/</kbd>
           </label>
-          <div class="filter-set" role="group" aria-label="Filter projects">
-            <button class="filter is-active" data-filter="code" type="button">code</button>
-            <button class="filter" data-filter="all" type="button">all</button>
-            <button class="filter" data-filter="repository" type="button">repo only</button>
-            <button class="filter" data-filter="infrastructure" type="button">infra</button>
-            <button class="filter" data-filter="content" type="button">data/docs</button>
-            <button class="filter" data-filter="nested" type="button">nested</button>
-            <button class="filter" data-filter="missing" type="button">missing</button>
-            <button class="filter" data-filter="ignored" type="button">ignored</button>
+          <div class="segmented view-toggle" role="group" aria-label="View">
+            <button type="button" data-view="tree" aria-pressed="true"><svg class="icon"><use href="#i-tree" /></svg>tree</button>
+            <button type="button" data-view="list" aria-pressed="false"><svg class="icon"><use href="#i-list" /></svg>list</button>
           </div>
           <label class="sort-control"><span>sort</span>
             <select id="project-sort">
-              <option value="name">name ↑</option><option value="name-desc">name ↓</option><option value="size-desc">size ↓</option>
-              <option value="size-asc">size ↑</option><option value="cleanup">rebuildable ↓</option><option value="cleanup-asc">rebuildable ↑</option>
-              <option value="recent">last seen</option><option value="type">type ↑</option><option value="type-desc">type ↓</option>
-              <option value="state">disk change ↑</option><option value="state-desc">disk change ↓</option>
+              <option value="size-desc">disk ↓</option>
+              <option value="size-asc">disk ↑</option>
+              <option value="cleanup">rebuildable ↓</option>
+              <option value="cleanup-asc">rebuildable ↑</option>
+              <option value="active-desc">recently active</option>
+              <option value="active-asc">longest idle</option>
+              <option value="name">name A–Z</option>
+              <option value="name-desc">name Z–A</option>
+              <option value="type">type A–Z</option>
+              <option value="type-desc">type Z–A</option>
+              <option value="state">disk change ↑</option>
+              <option value="state-desc">disk change ↓</option>
             </select>
           </label>
+          <div class="tree-tools" role="group" aria-label="Tree">
+            <button id="expand-all" class="icon-button" type="button" title="Expand all"><svg class="icon"><use href="#i-expand" /></svg><span class="sr-only">Expand all</span></button>
+            <button id="collapse-all" class="icon-button" type="button" title="Collapse all"><svg class="icon"><use href="#i-collapse" /></svg><span class="sr-only">Collapse all</span></button>
+          </div>
         </div>
-
-        <div id="bulk-bar" class="bulk-bar" hidden>
-          <strong><span id="selected-count">0</span> selected</strong>
-          <button id="copy-selected" type="button">copy paths</button>
-          <button id="ignore-selected" type="button">ignore</button>
-          <button id="unignore-selected" type="button">unignore</button>
-          <button id="clear-selection" type="button">clear</button>
+        <div class="toolbar-row filters">
+          <div class="segmented" role="group" aria-label="Project type" data-filter-group="scope">
+            <button type="button" data-value="code">code</button>
+            <button type="button" data-value="infra">infra</button>
+            <button type="button" data-value="repo">repo only</button>
+            <button type="button" data-value="content">data/docs</button>
+            <button type="button" data-value="all">all</button>
+          </div>
+          <div class="segmented" role="group" aria-label="Status" data-filter-group="status">
+            <button type="button" data-value="present">present</button>
+            <button type="button" data-value="missing">missing</button>
+            <button type="button" data-value="ignored">ignored</button>
+          </div>
+          <div class="toggles" role="group" aria-label="Narrow down">
+            <label class="toggle"><input id="cleanable-toggle" type="checkbox" /><span>has ≥ 50 MB rebuildable</span></label>
+            <label class="toggle"><input id="inactive-toggle" type="checkbox" /><span>inactive</span></label>
+          </div>
         </div>
-
-        <div class="list-header">
-          <label><input id="select-all" type="checkbox" aria-label="Select all visible projects" /><span></span></label>
-          <span class="sortable-column" role="columnheader" data-sort-key="name"><button type="button">project <i aria-hidden="true"></i></button></span>
-          <span class="sortable-column" role="columnheader" data-sort-key="type"><button type="button">type <i aria-hidden="true"></i></button></span>
-          <span class="sortable-column" role="columnheader" data-sort-key="size"><button type="button">disk <i aria-hidden="true"></i></button></span>
-          <span class="sortable-column column-help" role="columnheader" data-sort-key="cleanup" data-tooltip="Dependencies, build output, and caches that tools can recreate. Source files and Git history are excluded."><button type="button">rebuildable <i aria-hidden="true"></i></button><b tabindex="0" aria-label="Rebuildable: dependencies, build output, and caches that tools can recreate. Source files and Git history are excluded.">?</b></span>
-          <span class="sortable-column column-help" role="columnheader" data-sort-key="state" data-tooltip="How the project's total disk use changed since the previous scan. The scanner only measures changes; it does not delete files."><button type="button">disk change <i aria-hidden="true"></i></button><b tabindex="0" aria-label="Disk change: how total disk use changed since the previous scan. The scanner only measures changes; it does not delete files.">?</b></span><span></span>
-        </div>
-        <div id="project-list" class="project-list"></div>
-        <div id="empty-state" class="empty-state" hidden><span>∅</span><p>No matching projects.</p></div>
-
-        <footer>
-          <p id="last-scan">never scanned</p>
-          <p>click path to copy · disk size includes dependencies, builds and git</p>
-          <p>data/projects.json</p>
-        </footer>
       </section>
+
+      <div id="bulk-bar" class="bulk-bar" hidden>
+        <strong><span id="selected-count">0</span> selected <small id="selected-size"></small></strong>
+        <button id="clean-selected" class="primary-quiet" type="button">review cleanup</button>
+        <button id="copy-selected" type="button">copy paths</button>
+        <button id="ignore-selected" type="button">ignore</button>
+        <button id="unignore-selected" type="button">unignore</button>
+        <button id="clear-selection" type="button">clear</button>
+      </div>
+      </div>
+
+      <div id="workspace" class="workspace">
+        <section class="projects" aria-labelledby="projects-heading">
+          <h2 id="projects-heading" class="sr-only">Projects</h2>
+          <p id="platform-notice" class="notice" hidden>
+            <svg class="icon"><use href="#i-alert" /></svg>
+            <span id="platform-notice-text"></span>
+          </p>
+          <p id="rescan-notice" class="notice" hidden>
+            <svg class="icon"><use href="#i-alert" /></svg>
+            <span>This inventory predates rebuildable-folder tracking. Scan again to see each project's node_modules, builds, caches, and last activity.</span>
+          </p>
+          <div id="project-grid" class="project-grid" role="treegrid" aria-labelledby="projects-heading" aria-readonly="true">
+            <div class="grid-row grid-header" role="row">
+              <span role="columnheader" class="cell cell-check"><label class="check"><input id="select-all" type="checkbox" aria-label="Select all shown projects" /><span></span></label></span>
+              <span role="columnheader" class="cell cell-name sortable-column" data-sort-key="name"><button type="button">project <i aria-hidden="true"></i></button></span>
+              <span role="columnheader" class="cell cell-type sortable-column" data-sort-key="type"><button type="button">type <i aria-hidden="true"></i></button></span>
+              <span role="columnheader" class="cell cell-disk sortable-column" data-sort-key="size"><button type="button">disk <i aria-hidden="true"></i></button></span>
+              <span role="columnheader" class="cell cell-rebuild sortable-column column-help" data-sort-key="cleanup" data-tooltip="Dependencies, build output, and caches that tools can recreate. Source files and Git history are excluded."><button type="button">rebuildable <i aria-hidden="true"></i></button></span>
+              <span role="columnheader" class="cell cell-active sortable-column column-help" data-sort-key="active" data-tooltip="When the project last changed: its newest source file, or its latest commit or checkout."><button type="button">active <i aria-hidden="true"></i></button></span>
+              <span role="columnheader" class="cell cell-git column-help" data-tooltip="Whether the work here also exists somewhere else: uncommitted changes, commits no remote has, and where the code is pushed. Click a project's chip for details, commit, and push."><span class="column-label">git</span></span>
+              <span role="columnheader" class="cell cell-actions"><span class="sr-only">Actions</span></span>
+            </div>
+            <div id="project-rows" class="project-rows"></div>
+          </div>
+          <div id="empty-state" class="empty-state" hidden>
+            <svg class="icon"><use href="#i-search" /></svg>
+            <p id="empty-title">No matching projects.</p>
+            <p id="empty-hint">Try another type or status, or clear the search.</p>
+          </div>
+        </section>
+
+        <aside id="browser-panel" class="browser-panel" aria-labelledby="browser-heading" hidden>
+          <header class="panel-header">
+            <nav id="browser-crumbs" class="crumbs" aria-label="Folder path"></nav>
+            <div class="panel-actions">
+              <button id="browser-up" class="icon-button" type="button" title="Up one folder"><svg class="icon"><use href="#i-up" /></svg><span class="sr-only">Up one folder</span></button>
+              <button id="browser-refresh" class="icon-button" type="button" title="Refresh sizes"><svg class="icon"><use href="#i-refresh" /></svg><span class="sr-only">Refresh</span></button>
+              <button id="browser-finder" class="icon-button" type="button" title="Open in Finder"><svg class="icon"><use href="#i-reveal" /></svg><span class="sr-only">Open in Finder</span></button>
+              <button id="browser-close" class="icon-button" type="button" title="Close"><svg class="icon"><use href="#i-close" /></svg><span class="sr-only">Close folder browser</span></button>
+            </div>
+          </header>
+          <h2 id="browser-heading" class="panel-title"></h2>
+          <p id="browser-context" class="panel-context"></p>
+          <div class="panel-controls">
+            <div class="segmented small" role="group" aria-label="Sort folder">
+              <button type="button" data-browser-sort="size" aria-pressed="true">size</button>
+              <button type="button" data-browser-sort="name" aria-pressed="false">name</button>
+              <button type="button" data-browser-sort="modified" aria-pressed="false">modified</button>
+            </div>
+            <label class="toggle small"><input id="browser-hidden" type="checkbox" checked /><span>dotfiles</span></label>
+            <span id="browser-progress" class="panel-progress" aria-live="polite"></span>
+          </div>
+          <div class="browser-list-head">
+            <label class="check"><input id="browser-select-all" type="checkbox" aria-label="Select all deletable items" /><span></span></label>
+            <span>name</span><span>size</span><span>modified</span><span></span>
+          </div>
+          <div id="browser-list" class="browser-list" role="list"></div>
+          <footer class="panel-footer">
+            <span id="browser-selection">Select items to review them for deletion.</span>
+            <button id="browser-review" class="danger-button" type="button" disabled>
+              <svg class="icon"><use href="#i-trash" /></svg>review deletion
+            </button>
+          </footer>
+        </aside>
+      </div>
+
+      <footer class="app-footer">
+        <p id="last-scan">never scanned</p>
+        <p>nothing is deleted without a review · rebuildable files default to permanent delete, everything else to the Trash</p>
+        <p id="store-path">data/projects.json</p>
+      </footer>
     </main>
 
-    <template id="project-template">
-      <article class="project-row">
-        <label class="check-wrap"><input class="row-check" type="checkbox" /><span></span></label>
-        <div class="project-main">
-          <div class="title-line"><h3></h3><span class="scope"></span></div>
-          <button class="copy-path" type="button" title="Copy path"></button>
-        </div>
-        <span class="kind"></span><span class="size"></span><span class="cleanup"></span>
-        <span class="state"><i></i><span></span></span>
-        <button class="open-button" type="button" aria-label="Open project folder">open ↗</button>
-      </article>
+    <div id="locations-popover" class="locations-popover" popover>
+      <header>
+        <h2>Delete locations</h2>
+        <button class="icon-button" type="button" popovertarget="locations-popover" popovertargetaction="hide"><svg class="icon"><use href="#i-close" /></svg><span class="sr-only">Close</span></button>
+      </header>
+      <p class="popover-lede">Slop Finder only deletes inside these folders. Extra locations are saved in this browser only.</p>
+      <h3>Always allowed</h3>
+      <ul id="builtin-locations" class="location-list"></ul>
+      <h3>Extra locations</h3>
+      <ul id="extra-locations" class="location-list"></ul>
+      <form id="location-form" class="location-form">
+        <label class="sr-only" for="location-input">Folder to allow</label>
+        <input id="location-input" type="text" placeholder="/Volumes/Archive" autocomplete="off" spellcheck="false" />
+        <button type="submit">add</button>
+      </form>
+      <p id="location-error" class="form-error" role="alert"></p>
+      <h3>Never deleted</h3>
+      <p id="protected-summary" class="protected-summary"></p>
+    </div>
+
+    <dialog id="cleanup-dialog" class="cleanup-dialog" aria-labelledby="cleanup-title">
+      <form method="dialog" class="dialog-shell" id="cleanup-form">
+        <header class="dialog-header">
+          <div>
+            <h2 id="cleanup-title">Review deletion</h2>
+            <p id="cleanup-summary" class="dialog-summary"></p>
+          </div>
+          <button id="cleanup-close" class="icon-button" type="button"><svg class="icon"><use href="#i-close" /></svg><span class="sr-only">Close</span></button>
+        </header>
+        <div id="cleanup-body" class="dialog-body"></div>
+        <footer id="cleanup-footer" class="dialog-footer">
+          <fieldset id="cleanup-modes" class="mode-picker">
+            <legend class="sr-only">How to delete</legend>
+            <label class="mode-option">
+              <input type="radio" name="mode" value="permanent" />
+              <span><strong>Delete permanently</strong><small>Frees the space now. Cannot be undone.</small></span>
+            </label>
+            <label class="mode-option">
+              <input type="radio" name="mode" value="trash" />
+              <span><strong>Move to Trash</strong><small>Recoverable with Put Back. Frees space once the Trash is emptied.</small></span>
+            </label>
+          </fieldset>
+          <div id="cleanup-confirm-row" class="confirm-row" hidden>
+            <label for="cleanup-confirm-input">Some selected items cannot be rebuilt. Type <strong>delete</strong> to confirm.</label>
+            <input id="cleanup-confirm-input" type="text" autocomplete="off" spellcheck="false" />
+          </div>
+          <div class="dialog-progress" id="cleanup-progress" hidden>
+            <div class="progress-track"><span id="cleanup-progress-fill"></span></div>
+            <p id="cleanup-progress-text" aria-live="polite"></p>
+          </div>
+          <div class="dialog-actions">
+            <button id="cleanup-cancel" type="button" class="ghost-button">Cancel</button>
+            <button id="cleanup-stop" type="button" class="ghost-button" hidden>Stop after this item</button>
+            <button id="cleanup-confirm" type="button" class="danger-button" disabled>Delete</button>
+          </div>
+        </footer>
+      </form>
+    </dialog>
+
+    <dialog id="git-dialog" class="cleanup-dialog git-dialog" aria-labelledby="git-title">
+      <div class="dialog-shell">
+        <header class="dialog-header">
+          <div>
+            <h2 id="git-title">Git</h2>
+            <p id="git-summary" class="dialog-summary"></p>
+          </div>
+          <div class="panel-actions">
+            <button id="git-refresh" class="icon-button" type="button" title="Check again"><svg class="icon"><use href="#i-refresh" /></svg><span class="sr-only">Check again</span></button>
+            <button id="git-close" class="icon-button" type="button" title="Close"><svg class="icon"><use href="#i-close" /></svg><span class="sr-only">Close</span></button>
+          </div>
+        </header>
+        <div id="git-body" class="dialog-body"></div>
+      </div>
+    </dialog>
+
+    <template id="row-template">
+      <div class="grid-row project-row" role="row" tabindex="-1">
+        <span class="cell cell-check" role="gridcell"><label class="check"><input type="checkbox" /><span></span></label></span>
+        <span class="cell cell-name" role="gridcell">
+          <span class="indent" aria-hidden="true"></span>
+          <button class="disclosure" type="button" tabindex="-1"><svg class="icon"><use href="#i-chevron" /></svg></button>
+          <svg class="icon node-icon" aria-hidden="true"><use href="#i-folder" /></svg>
+          <span class="name-stack">
+            <span class="name-line"><span class="name"></span><span class="badges"></span></span>
+            <span class="sub-line"></span>
+          </span>
+        </span>
+        <span class="cell cell-type" role="gridcell"></span>
+        <span class="cell cell-disk" role="gridcell"></span>
+        <span class="cell cell-rebuild" role="gridcell"><span class="bar" aria-hidden="true"><i></i></span><span class="value"></span></span>
+        <span class="cell cell-active" role="gridcell"><i class="dot" aria-hidden="true"></i><span class="value"></span></span>
+        <span class="cell cell-git" role="gridcell"></span>
+        <span class="cell cell-actions" role="gridcell"></span>
+      </div>
+    </template>
+
+    <template id="browser-row-template">
+      <div class="browser-row" role="listitem">
+        <label class="check"><input type="checkbox" /><span></span></label>
+        <span class="browser-name">
+          <svg class="icon node-icon" aria-hidden="true"><use href="#i-folder" /></svg>
+          <button class="entry-name" type="button"></button>
+          <span class="badges"></span>
+        </span>
+        <span class="browser-size"><span class="value"></span><span class="bar" aria-hidden="true"><i></i></span></span>
+        <span class="browser-modified"></span>
+        <span class="browser-actions">
+          <button class="icon-button reveal" type="button"><svg class="icon"><use href="#i-reveal" /></svg></button>
+          <button class="icon-button delete" type="button"><svg class="icon"><use href="#i-trash" /></svg></button>
+        </span>
+      </div>
     </template>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
-    <script src="/app.js" defer></script>
   </body>
 </html>
