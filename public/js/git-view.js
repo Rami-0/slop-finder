@@ -25,12 +25,31 @@ const LEVEL_ICONS = { saved: 'check', 'at-risk': 'alert', unknown: 'branch' };
  *                     Git dialog: { ok, checkedAt, inSync, branchOnRemote,
  *                     localOnlyCommits, remoteHasUnknownCommits, error }
  *
+ * 'at-risk' means something exists only on this Mac; 'saved' means a remote
+ * elsewhere has every commit; 'unknown' means neither can be shown.
+ *
  * @returns {'saved' | 'at-risk' | 'unknown'}
  */
 export function gitVerdict(git) {
   if (!git) return 'unknown';
-  // TODO(you): decide when a project's work is safely somewhere else.
-  return 'unknown';
+  // No repository: nothing is versioned or pushed, so Git holds no copy at all.
+  if (git.state === 'none') return 'at-risk';
+  // 'inside' belongs to a repository this object does not describe; 'unreadable' says nothing.
+  if (git.state !== 'repository') return 'unknown';
+  // The remote's own answer beats remote-tracking branches, which are only as fresh as the last fetch.
+  const verified = git.verified?.ok ? git.verified : null;
+  const localOnly = verified?.localOnlyCommits ?? git.localOnlyCommits;
+  // Work that exists only here: no remote, uncommitted changes (untracked and
+  // conflicted files included), stashes, or commits that no remote has.
+  if (!git.remotes?.length || git.changes?.total || git.stashes || localOnly > 0) return 'at-risk';
+  // Nothing flagged, yet no copy Git can vouch for: an empty repository, commits
+  // on a detached HEAD (localOnlyCommits counts branches only), or a remote that
+  // is a folder on this computer.
+  if (!git.hasCommits || git.detached || git.origin?.local) return 'unknown';
+  // The live check failed (the remote may be gone), so stale remote-tracking
+  // branches must not make the work look safe.
+  if (git.verified && !git.verified.ok) return 'unknown';
+  return 'saved';
 }
 
 export function remoteLabel(remote) {

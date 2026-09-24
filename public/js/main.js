@@ -1,5 +1,5 @@
 import { api } from './api.js';
-import { isInactive } from './activity.js';
+import { LEVEL_STARTS, isInactive } from './activity.js';
 import { createBrowserPanel } from './browser-panel.js';
 import { createCleanupDialog } from './cleanup-dialog.js';
 import { $, element } from './dom.js';
@@ -304,7 +304,7 @@ function renderEmpty(rows) {
     el.emptyHint.textContent = 'Choose a folder above and scan it.';
   } else if (state.inactiveOnly && !visibleMatched.length) {
     el.emptyTitle.textContent = 'No inactive projects match.';
-    el.emptyHint.textContent = 'The inactive filter uses activityLevel() in public/js/activity.js to decide what counts as inactive.';
+    el.emptyHint.textContent = `Inactive means no source change or commit in the last ${LEVEL_STARTS.idle} days.`;
   } else {
     el.emptyTitle.textContent = 'No matching projects.';
     el.emptyHint.textContent = 'Try another type or status, or clear the search.';

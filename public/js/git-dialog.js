@@ -7,7 +7,7 @@ const LEVEL_ICONS = { saved: 'check', 'at-risk': 'alert', unknown: 'info' };
 const VERDICT_TEXT = {
   saved: 'Safe to delete as far as Git can tell: the work also lives on a remote.',
   'at-risk': 'Deleting this would lose work that exists only on this Mac.',
-  unknown: 'No verdict yet. gitVerdict() in public/js/git-view.js decides this.'
+  unknown: 'Git cannot tell whether deleting this would lose work.'
 };
 const FILE_KINDS = { M: 'modified', A: 'added', D: 'deleted', R: 'renamed', C: 'copied', T: 'type changed' };
 
